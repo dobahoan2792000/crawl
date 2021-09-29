@@ -8,7 +8,7 @@ function wait(ms) {
     setTimeout(res, ms);
   });
 }
-
+// format ve dung link category can fetch
 const formatCategoryLink = (urlCategory, date) => {
   if (urlCategory.includes("https://dantri.com.vn")) return urlCategory;
   else if (urlCategory.includes("/") && urlCategory.includes(".htm")) {
@@ -17,9 +17,11 @@ const formatCategoryLink = (urlCategory, date) => {
   }
   else return null;
 };
+// format ve dang url link bai viet dung
 const formatURLNews = (url, urlCategory) => {
-  return `https://dantri.com.vn${urlCategory}${url}`;
+  return `https://dantri.com.vn${url}`;
 };
+// lay 30 ngay tinh tu ngay hien tai tro ve
 const get30days = () => {
   var date = new Date();
   var all_days = [];
@@ -30,6 +32,7 @@ const get30days = () => {
   }
   return all_days;
 };
+// cao categories
 const crawlCategories = async (url) => {
   try {
     const res = await gotScraping({
@@ -47,19 +50,19 @@ const crawlCategories = async (url) => {
         operatingSystems: ["windows", "linux"],
       },
     });
-    console.log(res.body)
     const html = parse(res.body)
-    const news = html
-      .querySelectorAll(".dropdown ~ a")
+    const categories = html
+      .querySelectorAll(".dropdown > a")
       .map(t => t.attributes.href)
       .filter((t) => !t.includes("javascript:"))
       .concat(html.querySelectorAll("#site-dropdown__content a")
       .map((t) => t.attributes.href));
-    return news
+    return categories
   } catch (err) {
     console.log(err, "Error get categories");
   }
 };
+// cao cac link bai viet trong categories
 const crawlURLNews = async (urlCategory) => {
   try {
     console.log(urlCategory)
@@ -83,23 +86,22 @@ const crawlURLNews = async (urlCategory) => {
         },
       });
       const html = parse(res.body)
-      console.log(html)
+
       let news = html
-      .querySelectorAll(".news-item__title > a")
-      .map((url) => ({
-        title: url.text,
-        url: formatURLNews(url.attributes.href, urlCategory),
-      }))
-      // console.log(html
-      //   .querySelectorAll(".news-item__title"),'Hello 2')
-      urlNews = [...urlNews,...news]
-      
-      // let d = $(".news-item__title a")
-      // .map((i, url) => ({
-      //   title: $(url).text(),
-      //   url: formatURLNews(url.attribs.href, urlCategory),
+      .querySelectorAll(".news-item__title")
+      .map(p => {
+        let link = (p.structuredText + "</a>").trim()
+        let parseLink = parse(link)
+        return ({
+          title: parseLink.childNodes[0].text,
+          url: formatURLNews(parseLink.childNodes[0].attributes.href)
+        })
+      })
+      // .map((url) => ({
+      //   title: url.text,
+      //   url: formatURLNews(url.attributes.href, urlCategory),
       // }))
-      // .get()
+      urlNews = urlNews.concat(news)
       await wait(1000)
     }
     return urlNews;
@@ -107,7 +109,7 @@ const crawlURLNews = async (urlCategory) => {
     console.log(err, "Error get url link1 1 site");
   }
 };
-
+// crawl date trong bai viet
 const getDate = async (urlNews) => {
   try {
     const res = await gotScraping({
@@ -126,10 +128,15 @@ const getDate = async (urlNews) => {
       },
     });
     const html = parse(res.body);
-    const date = html.querySelector(".dt-news__time").text;
+    let date = html.querySelector(".dt-news__time")?.text;
+    if(!date){
+      date = html.querySelectorAll(".e-magazine__meta .e-magazine__meta-item")[1].text
+    }
+
     return date;
   } catch (err) {
     console.log(err, "Error get date");
   }
 };
 export { crawlCategories, crawlURLNews, getDate, wait, get30days };
+

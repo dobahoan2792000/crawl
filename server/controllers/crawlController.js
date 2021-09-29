@@ -1,10 +1,9 @@
 import Post from '../models/post.js'
-import { crawlCategories, crawlURLNews, getDate, wait, get30days } from "../../utils/crawl.js";
+import { crawlCategories, crawlURLNews, getDate, wait } from "../../utils/crawl.js";
 
 const crawl30 = async(req,res) => {
     try {
         const categories = await crawlCategories("https://dantri.com.vn/");
-        console.log(categories);
         for (const category of categories) {
           if (
             category != null &&
@@ -12,6 +11,7 @@ const crawl30 = async(req,res) => {
             !category.includes("javascript")
           ) {
             let getNews = await crawlURLNews(category);
+            console.log(getNews)
             for (const news of getNews) {
               console.log("DATE1");
               console.log(news.url)
