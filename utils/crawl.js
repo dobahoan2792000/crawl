@@ -73,9 +73,9 @@ const crawlChoosMe = async () => {
           const products = $('.product-list .product-item-col').each(function (index,element){
             const img = $(element).find('img').attr('data-src')
             const name = $(element).find('.product-title').text()
-            const price = $(element).find('.product-price .product-price-current').text()
+            const price = $(element).find('.product-price .product-price-current').text().trim()
             const priceSale = $(element).find('.product-price .product-price-old') ? $(element).find('.product-price .product-price-old').text() : ''
-            const sale = $(element).find('.boxTagIcon .tagProItem') ? $(element).find('.boxTagIcon .tagProItem').text() : ''
+            const sale = $(element).find('.boxTagIcon .tagProItem') ? $(element).find('.boxTagIcon .tagProItem').text().trim() : ''
             productList.push({
               image: img,
               name: name.replace('\n',''),
@@ -85,6 +85,7 @@ const crawlChoosMe = async () => {
               fil1: fil1,
               fil2: fil2,
               fil3: fil3,
+              urlCategory: formatCategoryLink(category,fil1,fil2,fil3)
             })
           })
         }
